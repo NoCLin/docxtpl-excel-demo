@@ -1,6 +1,6 @@
 # coding:utf-8
 
-import pandas as pd
+import xlrd
 from docxtpl import DocxTemplate
 
 FROM_EXCEL = 'data.xls'
@@ -8,13 +8,17 @@ SHEET_NAME = 'Sheet1'
 TEMPLATE_DOCX = "template.docx"
 OUTPUT = "generated.docx"
 
-df = pd.read_excel(FROM_EXCEL, sheet_name=SHEET_NAME)
+wb = xlrd.open_workbook(FROM_EXCEL)
+sheet = wb.sheet_by_name(SHEET_NAME)
 
-rows = []
-for row_arr in df.iterrows():
-    row = {col: row_arr[1][col] for col in df}
-    rows.append(row)
-print(rows)
+rows = [
+    dict(zip(sheet.row_values(0), sheet.row_values(i)))
+    for i in range(1, sheet.nrows)
+]
+
+for row in rows:
+    print(row)
+
 doc = DocxTemplate(TEMPLATE_DOCX)
 context = {"rows": rows, }
 doc.render(context)
